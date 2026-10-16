@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+simulate
+results/*.png
+results/*.pdf
+results/*_run.log
+results/factor_samples.csv

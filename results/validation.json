@@ -1,0 +1,139 @@
+{
+  "mean_recurrence_checks": [
+    {
+      "n": 2,
+      "H": 1,
+      "relative_error": 2.355138688025663e-16
+    },
+    {
+      "n": 3,
+      "H": 2,
+      "relative_error": 1.7406883620090102e-15
+    },
+    {
+      "n": 4,
+      "H": 3,
+      "relative_error": 4.529212545972146e-15
+    },
+    {
+      "n": 5,
+      "H": 4,
+      "relative_error": 7.301592701903928e-15
+    },
+    {
+      "n": 7,
+      "H": 6,
+      "relative_error": 3.525889260905139e-14
+    },
+    {
+      "n": 20,
+      "H": 8,
+      "relative_error": 3.3990932617792844e-15
+    },
+    {
+      "n": 100,
+      "H": 8,
+      "relative_error": 1.0361020038637063e-15
+    },
+    {
+      "n": 1000,
+      "H": 8,
+      "relative_error": 3.250483366913038e-13
+    }
+  ],
+  "exact_enumerations": [
+    {
+      "n": 2,
+      "labelled_parent_trees": 2
+    },
+    {
+      "n": 3,
+      "labelled_parent_trees": 6
+    },
+    {
+      "n": 4,
+      "labelled_parent_trees": 24
+    },
+    {
+      "n": 5,
+      "labelled_parent_trees": 120
+    },
+    {
+      "n": 6,
+      "labelled_parent_trees": 720
+    }
+  ],
+  "mc_l1_deviations": [
+    {
+      "n": 100,
+      "H": 1,
+      "standard_errors": -1.1481802843759525
+    },
+    {
+      "n": 100,
+      "H": 3,
+      "standard_errors": -1.5421061838027714
+    },
+    {
+      "n": 100,
+      "H": 6,
+      "standard_errors": -1.6338679673396148
+    },
+    {
+      "n": 1000,
+      "H": 1,
+      "standard_errors": -1.3378341260259305
+    },
+    {
+      "n": 1000,
+      "H": 2,
+      "standard_errors": -1.4354495305552961
+    },
+    {
+      "n": 1000,
+      "H": 3,
+      "standard_errors": -1.5620979101770733
+    },
+    {
+      "n": 1000,
+      "H": 6,
+      "standard_errors": -1.6368815049400431
+    },
+    {
+      "n": 10000,
+      "H": 1,
+      "standard_errors": -1.4647522331929705
+    },
+    {
+      "n": 10000,
+      "H": 3,
+      "standard_errors": -1.564355212993107
+    },
+    {
+      "n": 10000,
+      "H": 6,
+      "standard_errors": -1.699356123397717
+    },
+    {
+      "n": 100000,
+      "H": 1,
+      "standard_errors": -1.287755251667432
+    },
+    {
+      "n": 100000,
+      "H": 3,
+      "standard_errors": -1.4573169548477207
+    },
+    {
+      "n": 100000,
+      "H": 4,
+      "standard_errors": -1.5543006643460813
+    },
+    {
+      "n": 100000,
+      "H": 6,
+      "standard_errors": -1.6829468847020872
+    }
+  ],
+  "maximum_mc_deviation_in_standard_errors": 1.699356123397717
+}

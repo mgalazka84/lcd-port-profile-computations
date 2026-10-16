@@ -1,0 +1,21 @@
+{
+  "seed": 20261016,
+  "replicates": 32768,
+  "sizes": [
+    100,
+    1000,
+    10000,
+    100000
+  ],
+  "engine": "std::mt19937_64",
+  "sampler": "64-bit rejection, then modulo; path seed = seed + replication index",
+  "python": "3.12.14",
+  "numpy": "2.3.5",
+  "scipy": "1.17.0",
+  "matplotlib": "3.10.8",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "simulation_reused": false,
+  "control_variate": "Exact mean of a supporting linear functional; MC estimates the nonnegative residual norm(g)-q dot g",
+  "uncertainty": "Pointwise mean +/- 1.96 estimated Monte Carlo standard errors",
+  "transport_note": "For p>1 the Monte Carlo mean estimates a coupling upper bound, not the optimal transport distance."
+}
