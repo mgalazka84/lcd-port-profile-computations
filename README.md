@@ -5,8 +5,9 @@ the root component in the one-edge LCD model and the profile of a
 plane-oriented recursive tree (PORT). LCD size `n` is paired with PORT
 size `n + 1` throughout.
 
-The code computes exact-formula mean differences, evaluates leading and
-corrected approximations, and simulates an exact common coupling.
+The code computes exact-formula mean differences, determines how many
+levels meet a chosen tolerance, evaluates leading and corrected
+approximations, and simulates an exact common coupling.
 The numerical summaries are synthetic; no empirical network data are used.
 
 ## Reproduce
@@ -78,13 +79,20 @@ are dependent; standard errors are computed over independent paths.
 ## Files
 
 - `profiles.py`: exact-formula means via Newton identities, transport
-  lower bounds, leading and corrected sum-cost approximations.
+  lower bounds, cutoff search, leading and corrected sum-cost approximations,
+  and complete fixed-level logarithmic polynomials.
 - `simulate.cpp`: exact insertion-position simulation, raw and residual
   Monte Carlo means and standard errors, pathwise consistency checks.
 - `run_experiments.py`: complete experiment and vector-figure generation.
 - `validate.py`: independent direct mean recurrence and exact rational
-  enumeration of parent-labelled PORT trees through seven vertices.
-- `results/exact_l1.csv`: all `n=10^2,...,10^7`, `H=1,...,12`.
+  enumeration of parent-labelled PORT trees through seven vertices;
+  independent Cauchy/FFT checks of polynomial coefficients and cutoff boundaries.
+- `results/exact_l1.csv`: all `n=10^2,...,10^7`, `H=1,...,12`, including
+  signed errors of the leading, corrected and complete-polynomial approximations.
+- `results/retained_levels.csv`: largest `H` meeting sum-cost tolerances
+  `0.5, 1, 2`, with exact-formula costs at `H` and `H+1`.
+- `results/figure3_values.csv`: unscaled bounds and estimated standard
+  errors for every point of Figure 3.
 - `results/control_means.csv`: deterministic mean gaps used in the
   supporting functionals.
 - `results/coupling_mc.csv`: raw costs and nonnegative residual summaries.
@@ -98,7 +106,8 @@ are dependent; standard errors are computed over independent paths.
 - `results/logarithmic_window_diagnostic.csv`: exploratory maximum-cost
   calculation at `H=floor(0.35 log n)`; not a proof beyond an analytic domain.
 - `results/metadata.json`, `results/validation.json`: provenance and checks.
-- `results/Table_exact.tex`: regenerated numerical table.
+- `results/Table_exact.tex`, `results/Table_retained_levels.tex`,
+  `results/Table_bounds.tex`: regenerated numerical table rows.
 - `results/Fig2.pdf`, `results/Fig3.pdf`, `results/Fig4.pdf`: figures generated
   locally by the script (not tracked); PNG previews are also generated.
 
@@ -111,6 +120,18 @@ sequentially.
 
 The first correction is asymptotic for H=o(log n). Its numerical use
 outside that range is an approximation assessment, not an error guarantee.
+The leading term eventually overestimates the sum cost for `2 <= H=o(log n)`;
+at `H=1` it underestimates it. At `n=100,H=12`, the corrected signed
+relative error is `+14.657687%`. The complete logarithmic polynomial has
+absolute relative error below `0.01%` on the reported grid `n>=10^4,H<=12`,
+but this is a finite-grid observation, not a bound for arbitrary growing H.
+Use the exact-formula evaluation when computing a retention cutoff.
+
+For example, the largest cutoffs at tolerances `0.5, 1, 2` are respectively
+`1, 2, 3` for `n=10^3`, `2, 3, 4` for `n=10^5`, and `2, 3, 5` for `n=10^7`.
+These refer to normalized, unaveraged sum cost; H counts non-root layers.
+In Figure 2 grey shading marks `H>log(n)`, an obvious violation of the
+sublogarithmic regime. Unshaded points are not thereby certified accurate.
 
 ## Authors
 

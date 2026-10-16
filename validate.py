@@ -7,7 +7,9 @@ from fractions import Fraction
 from pathlib import Path
 
 import numpy as np
-from profiles import normalized_means, direct_mean_recurrence, mean_lower_bound
+from scipy.special import rgamma
+from profiles import (normalized_means, direct_mean_recurrence, mean_lower_bound,
+                      full_log_polynomial_l1, retained_level_cutoff)
 
 ROOT = Path(__file__).resolve().parent
 
@@ -74,6 +76,32 @@ def main():
         assert np.allclose(means,normalized_means(n,6),rtol=2e-10,atol=1e-12)
         assert math.isclose(sum(gaps),mean_lower_bound(n,6,1),rel_tol=2e-10)
         enumerations.append({"n":n,"labelled_parent_trees":count})
+    # Independent Cauchy/FFT extraction of the reciprocal-Gamma coefficients,
+    # compared with the real log-series recurrence used by profiles.py.
+    radius, points, degree = .75, 512, 12
+    circle = radius*np.exp(2j*np.pi*np.arange(points)/points)
+    coefficients = (np.fft.fft(rgamma(2+circle))/points)[:degree]
+    coefficients = coefficients.real/radius**np.arange(degree)
+    polynomial_checks = []
+    for n in [100,1000,10000,100000,1000000,10000000]:
+        for H in [1,3,6,12]:
+            L = math.log(n)
+            independent = math.sqrt(math.pi)*math.fsum(
+                h/L*math.fsum(math.factorial(h-1)/math.factorial(h-1-j)*coefficients[j]/L**j
+                             for j in range(h)) for h in range(1,H+1))
+            error = abs(full_log_polynomial_l1(n,H)/independent-1)
+            assert error < 2e-11, (n,H,error)
+            polynomial_checks.append({"n":n,"H":H,"relative_error":error})
+    cutoff_checks = []
+    for n in [1000,100000,10000000]:
+        # Check every candidate below and immediately above the cutoff.
+        costs = [mean_lower_bound(n,H,1) for H in range(13)]
+        for tolerance in [.5,1.,2.]:
+            H = retained_level_cutoff(n,tolerance)
+            assert all(cost <= tolerance for cost in costs[:H+1])
+            assert costs[H+1] > tolerance
+            cutoff_checks.append({"n":n,"tolerance":tolerance,"largest_H":H,
+                                  "cost_at_H":costs[H],"cost_at_next_H":costs[H+1]})
     mc_zscores = []
     with (ROOT/'results/coupling_mc.csv').open() as f:
         for r in csv.DictReader(f):
@@ -84,6 +112,8 @@ def main():
             mc_zscores.append({"n":int(r['n']),"H":int(r['H']),"standard_errors":z})
     # This reports sampling discrepancies; it is not a deterministic test gate.
     report={"mean_recurrence_checks":checks,"exact_enumerations":enumerations,
+            "full_polynomial_cauchy_checks":polynomial_checks,
+            "retained_level_boundary_checks":cutoff_checks,
             "mc_l1_deviations":mc_zscores,
             "maximum_mc_deviation_in_standard_errors":max(abs(x['standard_errors']) for x in mc_zscores)}
     (ROOT/'results/validation.json').write_text(json.dumps(report,indent=2)+'\n')

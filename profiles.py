@@ -74,6 +74,50 @@ def corrected_l1(n: int, H: int) -> float:
     return leading(n, H) * (1 + 2 * (np.euler_gamma - 1) * (H - 1) / (3 * math.log(n)))
 
 
+def full_log_polynomial_l1(n: int, H: int) -> float:
+    """Use the complete fixed-level logarithmic polynomial in every mean.
+
+    This omits finite-n Gamma-ratio corrections; it is not an exact
+    formula or a uniform guarantee for arbitrary growing H.
+    """
+    if n < 2 or H < 0:
+        raise ValueError("require n >= 2 and H >= 0")
+    if H == 0:
+        return 0.0
+    g = np.zeros(H)
+    g[0] = 1.0
+    # j times the coefficient of u^j in log(1/Gamma(2+u)).
+    log_derivative = np.zeros(H)
+    if H > 1:
+        log_derivative[1] = np.euler_gamma - 1
+    for j in range(2, H):
+        log_derivative[j] = (-1)**(j+1) * zeta(j, 2)
+    for k in range(1, H):
+        g[k] = math.fsum(log_derivative[j]*g[k-j] for j in range(1, k+1))/k
+    L = math.log(n)
+    return math.sqrt(math.pi)*math.fsum(
+        h/L * math.fsum(math.factorial(h-1)/math.factorial(h-1-j)*g[j]/L**j
+                        for j in range(h)) for h in range(1, H+1))
+
+
+def retained_level_cutoff(n: int, tolerance: float, search_limit: int = 12) -> int:
+    """Largest H with exact-formula sum cost <= tolerance, H in 0,...,n.
+
+    Search modest degrees only, raising if the crossing is not reached.
+    The zero coordinate agrees exactly, so H counts non-root levels.
+    """
+    if tolerance < 0 or search_limit < 0:
+        raise ValueError("tolerance and search_limit must be nonnegative")
+    upper = min(n, search_limit+1)
+    costs = np.cumsum(mean_gaps(n, upper))
+    crossings = np.flatnonzero(costs > tolerance)
+    if len(crossings):
+        return int(crossings[0])-1
+    if upper == n:
+        return n
+    raise ValueError("increase search_limit: no crossing found")
+
+
 def direct_mean_recurrence(n: int, H: int) -> np.ndarray:
     """Independent O(nH) check using the one-step mean recurrence."""
     m = np.zeros(H + 1)

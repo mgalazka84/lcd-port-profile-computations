@@ -1,6 +1,20 @@
 {
   "seed": 20261016,
   "replicates": 32768,
+  "deterministic_sizes": [
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+    10000000
+  ],
+  "deterministic_max_H": 12,
+  "cutoff_tolerances": [
+    0.5,
+    1.0,
+    2.0
+  ],
   "sizes": [
     100,
     1000,
@@ -14,7 +28,7 @@
   "scipy": "1.17.0",
   "matplotlib": "3.10.8",
   "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
-  "simulation_reused": false,
+  "simulation_reused": true,
   "control_variate": "Exact mean of a supporting linear functional; MC estimates the nonnegative residual norm(g)-q dot g",
   "uncertainty": "Pointwise mean +/- 1.96 estimated Monte Carlo standard errors",
   "transport_note": "For p>1 the Monte Carlo mean estimates a coupling upper bound, not the optimal transport distance."

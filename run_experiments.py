@@ -16,7 +16,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 
-from profiles import corrected_l1, leading, mean_lower_bound, mean_gaps
+from profiles import (corrected_l1, leading, mean_lower_bound, mean_gaps,
+                      full_log_polynomial_l1, retained_level_cutoff)
 
 ROOT = Path(__file__).resolve().parent
 
@@ -79,10 +80,38 @@ def main():
     for n in [10 ** k for k in range(2, 8)]:
         for H in range(1, 13):
             exact, first, second = mean_lower_bound(n, H, 1), leading(n, H), corrected_l1(n, H)
+            full = full_log_polynomial_l1(n, H)
             exact_rows.append(dict(n=n, H=H, exact_l1=exact, leading=first,
                                    corrected=second, leading_error_percent=100*(first/exact-1),
-                                   corrected_error_percent=100*(second/exact-1)))
+                                   corrected_error_percent=100*(second/exact-1),
+                                   full_log_polynomial=full,
+                                   full_polynomial_error_percent=100*(full/exact-1)))
     write_csv(results / "exact_l1.csv", exact_rows)
+    cutoff_rows = []
+    for n in [10**k for k in range(2, 8)]:
+        for tolerance in [.5, 1., 2.]:
+            H = retained_level_cutoff(n, tolerance)
+            cutoff_rows.append(dict(n=n, tolerance=tolerance, largest_H=H,
+                                   cost_at_H=mean_lower_bound(n, H, 1),
+                                   cost_at_next_H=mean_lower_bound(n, H+1, 1)))
+    write_csv(results / "retained_levels.csv", cutoff_rows)
+    cutoff_table = []
+    for n in [1000, 100000, 10000000]:
+        entries = [r["largest_H"] for r in cutoff_rows if r["n"] == n]
+        cutoff_table.append(f"$10^{round(math.log10(n))}$ & " +
+                            " & ".join(map(str, entries)) + r" \\")
+    (results / "Table_retained_levels.tex").write_text("\n".join(cutoff_table)+"\n")
+    figure3_rows = sorted(
+        (r for r in enriched if r["H"] in [3, 6] and r["p"] in ["2", "inf"]),
+        key=lambda r: (r["n"], r["H"], float(r["p"])))
+    write_csv(results / "figure3_values.csv", figure3_rows)
+    bounds_table = []
+    for r in figure3_rows:
+        p = r"\infty" if r["p"] == "inf" else r["p"]
+        bounds_table.append(f"$10^{round(math.log10(r['n']))}$ & {r['H']} & ${p}$ & "
+                            f"{r['mean_lower_bound']:.6f} & {r['coupling_mean']:.6f} & "
+                            f"{r['mc_se']:.6f}" + r" \\")
+    (results / "Table_bounds.tex").write_text("\n".join(bounds_table)+"\n")
     table = []
     for r in exact_rows:
         if r["H"] == 3:
@@ -103,6 +132,13 @@ def main():
         second = np.array([corrected_l1(int(n), H) for n in ns])
         ax.semilogx(ns, 100*(first/values-1), color="#225e94", label="Leading term")
         ax.semilogx(ns, 100*(second/values-1), color="#b14f25", ls="--", label="With correction")
+        if ns[0] < math.exp(H):
+            ax.axvspan(ns[0], math.exp(H), color="0.9", zorder=-1)
+            ax.axvline(math.exp(H), color="0.65", lw=.7, ls=":")
+            ax.text(math.sqrt(ns[0]*math.exp(H)), .43, r"$H>\log n$",
+                    ha="center", va="center", rotation=90, fontsize=8,
+                    color="0.35", transform=ax.get_xaxis_transform())
+        ax.set_xlim(ns[0], ns[-1])
         ax.axhline(0, color="0.65", lw=0.7)
         ax.set(xlabel=r"LCD size $n$", ylabel="Signed relative error (%)", title=f"$H={H}$")
         ax.grid(alpha=.15); ax.legend(frameon=False)
@@ -140,8 +176,8 @@ def main():
         theory = 1 / np.sqrt(1-probabilities)-1
         empirical = np.quantile(C/R, probabilities)
         write_csv(results / "relative_factor_quantiles.csv", [
-            dict(probability=float(p), theoretical_quantile=float(t), empirical_quantile=float(e))
-            for p,t,e in zip(probabilities,theory,empirical)])
+            dict(probability=float(alpha), theoretical_quantile=float(t), empirical_quantile=float(e))
+            for alpha,t,e in zip(probabilities,theory,empirical)])
         counts,_,_ = np.histogram2d(R,C,bins=(rbins,cbins))
         write_csv(results / "joint_factor_histogram.csv", [
             dict(r_bin=i,c_bin=j,count=int(counts[i,j]))
@@ -176,6 +212,8 @@ def main():
                 r["H"] == max(1, int(.35*math.log(r["n"])))]
     write_csv(results / "logarithmic_window_diagnostic.csv", log_rows)
     metadata = {"seed":args.seed, "replicates":args.replicates,
+                "deterministic_sizes":[10**k for k in range(2,8)],
+                "deterministic_max_H":12, "cutoff_tolerances":[.5,1.,2.],
                 "sizes":[100,1000,10000,100000], "engine":"std::mt19937_64",
                 "sampler":"64-bit rejection, then modulo; path seed = seed + replication index",
                 "python":platform.python_version(), "numpy":np.__version__,
